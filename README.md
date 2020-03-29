@@ -1,3 +1,3 @@
-# movinglikeavirus
+# JAVSS
 
-Random movements simulator
+Just Another Virus Spread Simulator
