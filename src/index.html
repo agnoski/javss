@@ -10,6 +10,26 @@
 <canvas id="playground" width="1024" height="320"></canvas>
 
 <div>
+    <form id="config">
+        <label for="maxBallsHealthy">Number of healthy balls: </label>
+        <input type="number" id="maxBallsHealthy" value="100" min="1" max="1000"></br>
+
+        <label for="maxBallsInfected">Number of infected balls: </label>
+        <input type="number" id="maxBallsInfected" value="2" min="1" max="1000"></br>
+
+        <label for="radius">Ball radius: </label>
+        <input type="number" id="radius" value="3" min="1" max="20"></br>
+
+        <label for="safeDist">Safety Distance: </label>
+        <input type="number" id="safeDist" value="6" min="1" max="100"></br>
+
+        <label for="range">Range: </label>
+        <input type="number" id="range" value="2" min="1" max="100"></br>
+    </form>
+    <button onclick="startDancing()">Go !</button>
+</div>
+
+<div>
     <p>Statistics</p>
     <p>Healthy: <span id="healthy">0 (0%)</span></p>
     <p>Infected: <span id="infected">0 (0%)</span></p>

@@ -1,4 +1,4 @@
-const time = 50;
+const time = 100;
 const timeStatistics = 1000;
 const colors = {
     healthy: "green",
@@ -10,12 +10,12 @@ var playground;
 
 class Playground {
     constructor(config) {
-        this.range = config.range;
-        this.maxBallsHealthy = config.maxBallsHealthy;
-        this.maxBallsInfected = config.maxBallsInfected;
+        this.range = parseInt(config.range);
+        this.maxBallsHealthy = parseInt(config.maxBallsHealthy);
+        this.maxBallsInfected = parseInt(config.maxBallsInfected);
         this.totalBalls = this.maxBallsHealthy + this.maxBallsInfected;
-        this.radius = config.radius;
-        this.safeDist = config.safeDist;
+        this.radius = parseInt(config.radius);
+        this.safeDist = parseInt(config.safeDist);
         this.canvas = config.canvas;
         this.ctx = this.canvas.getContext("2d");
 
@@ -77,7 +77,7 @@ class Playground {
 }
 
 class Ball {
-    constructor(ctx, xStart, yStart, status, range, radius, maxWidth, maxHeight) {
+    constructor(ctx, xStart, yStart, status, radius, range, maxWidth, maxHeight) {
         this.ctx = ctx;
         this.x = xStart;
         this.y = yStart;
@@ -92,8 +92,8 @@ class Ball {
     }
 
     move() {
-        this.x += this.getRndMovement(this.range); //getRndInteger(-range, range);
-        this.y += this.getRndMovement(this.range); //getRndInteger(-range, range);
+        this.x += this.getRndMovement(); //getRndInteger(-range, range);
+        this.y += this.getRndMovement(); //getRndInteger(-range, range);
         this.x = Math.min(Math.max(0 + this.radius, this.x), this.maxWidth - this.radius);
         this.y = Math.min(Math.max(0 + this.radius, this.y), this.maxHeight - this.radius);
     }
@@ -114,8 +114,8 @@ class Ball {
         return Math.sqrt(Math.pow(this.x - ball.x, 2) + Math.pow(this.y - ball.y, 2));
     }
 
-    getRndMovement(range) {
-        return range * getRndInteger(0, 1) === 0 ? -1 : 1;
+    getRndMovement() {
+        return this.range * (getRndInteger(0, 1) === 0 ? -1 : 1);
     }
 }
 
@@ -137,11 +137,11 @@ function dance() {
 function startDancing() {
     // init contetext
     const config = {
-        range: 5,
-        maxBallsHealthy: 100,
-        maxBallsInfected: 2,
-        radius: 4,
-        safeDist: 20,
+        range: $("#range").val(),
+        maxBallsHealthy: $("#maxBallsHealthy").val(),
+        maxBallsInfected: $("#maxBallsInfected").val(),
+        radius: $("#radius").val(),
+        safeDist: $("#safeDist").val(),
         canvas: document.getElementById("playground")
     };
 
@@ -153,5 +153,5 @@ function startDancing() {
 }
 
 $(document).ready(function() {
-    startDancing();
+    console.log("Ready!");
 });
