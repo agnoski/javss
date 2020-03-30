@@ -1,40 +1,101 @@
 const time = 50;
 const timeStatistics = 1000;
-const range = 5;
-const maxBallsHealthy = 100;
-const maxBallsInfected = 2;
-const totalBalls = maxBallsHealthy + maxBallsInfected;
-const radius = 4;
-const balls = [];
 const colors = {
     healthy: "green",
     infected: "red",
     dead: "gray"
 };
-const safeDist = 20;
-var ctx;
-var canvas;
-var currentHealthy = 0;
-var currentInfected = 0;
-var currentHealthyRatio = 0;
-var currentInfectedRatio = 0;
+
+var playground;
+
+class Playground {
+    constructor(config) {
+        this.range = config.range;
+        this.maxBallsHealthy = config.maxBallsHealthy;
+        this.maxBallsInfected = config.maxBallsInfected;
+        this.totalBalls = this.maxBallsHealthy + this.maxBallsInfected;
+        this.radius = config.radius;
+        this.safeDist = config.safeDist;
+        this.canvas = config.canvas;
+        this.ctx = this.canvas.getContext("2d");
+
+        this.balls = [];
+        this.currentHealthy = 0;
+        this.currentInfected = 0;
+        this.currentHealthyRatio = 0;
+        this.currentInfectedRatio = 0;
+
+        this.injectBalls(this.maxBallsHealthy, "healthy");
+        this.injectBalls(this.maxBallsInfected, "infected");
+    }
+
+    injectBalls(amount, status){
+        for(let i = 0; i < amount; i++) {
+            const xStart = getRndInteger(0, this.canvas.width - 1);
+            const yStart = getRndInteger(0, this.canvas.height - 1);
+            const ball = new Ball(this.ctx, xStart, yStart, status, this.radius, this.range, this.canvas.width, this.canvas.height);
+            this.balls.push(ball);
+        }
+    }
+
+    clearPlayground() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+    updateBallsStatus() {
+        this.balls.forEach((b1, i1) => {
+            this.balls.forEach((b2, i2) => {
+                if(i1!==i2) {
+                    if(b1.getDistance(b2) < this.safeDist && b1.status === "healthy" && b2.status === "infected") {
+                        b1.status = "infected";
+                    }
+                }
+            });
+        });
+    }
+
+    moveAndRedraw() {
+        this.balls.forEach(b => {
+            b.move();
+            b.draw();
+        });
+    }
+
+    updateStatistics() {
+        this.currentHealthy = this.balls.filter(b => b.status === "healthy").length;
+        this.currentInfected = this.balls.filter(b => b.status === "infected").length;
+        this.currentHealthyRatio = 100.0 * (this.currentHealthy / this.totalBalls);
+        this.currentInfectedRatio = 100.0 * (this.currentInfected / this.totalBalls);
+    }
+
+    play() {
+        this.clearPlayground();
+        this.updateBallsStatus();
+        this.moveAndRedraw();
+        this.updateStatistics();
+    }
+}
 
 class Ball {
-    constructor(ctx, xStart, yStart, status) {
-        this.id = 0;
+    constructor(ctx, xStart, yStart, status, range, radius, maxWidth, maxHeight) {
         this.ctx = ctx;
         this.x = xStart;
         this.y = yStart;
         this.status = status;
+        this.radius = radius;
+        this.range = range;
+        this.maxWidth = maxWidth;
+        this.maxHeight = maxHeight;
+        this.id = 0;
         this.age = 0;
         this.dateInfection = new Date();
     }
 
     move() {
-        this.x += getRndMovement(); //getRndInteger(-range, range);
-        this.y += getRndMovement(); //getRndInteger(-range, range);
-        this.x = Math.min(Math.max(0 + radius, this.x), canvas.width - radius);
-        this.y = Math.min(Math.max(0 + radius, this.y), canvas.height - radius);
+        this.x += this.getRndMovement(this.range); //getRndInteger(-range, range);
+        this.y += this.getRndMovement(this.range); //getRndInteger(-range, range);
+        this.x = Math.min(Math.max(0 + this.radius, this.x), this.maxWidth - this.radius);
+        this.y = Math.min(Math.max(0 + this.radius, this.y), this.maxHeight - this.radius);
     }
 
     getColor() {
@@ -43,7 +104,7 @@ class Ball {
 
     draw() {
         this.ctx.beginPath();
-        this.ctx.arc(this.x, this.y, radius, 0, Math.PI*2, false);
+        this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2, false);
         this.ctx.fillStyle = this.getColor();
         this.ctx.fill();
         this.ctx.closePath();
@@ -52,74 +113,43 @@ class Ball {
     getDistance(ball) {
         return Math.sqrt(Math.pow(this.x - ball.x, 2) + Math.pow(this.y - ball.y, 2));
     }
+
+    getRndMovement(range) {
+        return range * getRndInteger(0, 1) === 0 ? -1 : 1;
+    }
 }
 
+// utils
 function getRndInteger(min, max) {
     return Math.floor(Math.random() * (max - min + 1) ) + min;
 }
 
-function getRndMovement() {
-    return range * getRndInteger(0, 1) === 0 ? -1 : 1;
-}
-
-function updateStatistics() {
-    $("#healthy").html(`${currentHealthy} (${currentHealthyRatio.toFixed(2)}%)`);
-    $("#infected").html(`${currentInfected} (${currentInfectedRatio.toFixed(2)}%)`);
+// html
+function printStatistics() {
+    $("#healthy").html(`${playground.currentHealthy} (${playground.currentHealthyRatio.toFixed(2)}%)`);
+    $("#infected").html(`${playground.currentInfected} (${playground.currentInfectedRatio.toFixed(2)}%)`);
 }
 
 function dance() {
-    // clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // update balls status
-    balls.forEach((b1, i1) => {
-        balls.forEach((b2, i2) => {
-            if(i1!==i2) {
-                if(b1.getDistance(b2) < safeDist && b1.status === "healthy" && b2.status === "infected") {
-                    b1.status = "infected";
-                }
-            }
-        });
-    });
-
-    // move and redraw balls in the new position
-    balls.forEach(b => {
-        b.move();
-        b.draw();
-    });
-
-    // updateStatistics
-    currentHealthy = balls.filter(b => b.status === "healthy").length;
-    currentInfected = balls.filter(b => b.status === "infected").length;
-    currentHealthyRatio = 100.0 * (currentHealthy / totalBalls);
-    currentInfectedRatio = 100.0 * (currentInfected / totalBalls);
+    playground.play();
 }
 
 function startDancing() {
-
     // init contetext
-    canvas = document.getElementById("playground");
-    ctx = canvas.getContext("2d");
+    const config = {
+        range: 5,
+        maxBallsHealthy: 100,
+        maxBallsInfected: 2,
+        radius: 4,
+        safeDist: 20,
+        canvas: document.getElementById("playground")
+    };
 
-    // inject healthy balls
-    for(let i = 0; i < maxBallsHealthy; i++) {
-        const xStart = getRndInteger(0, canvas.width - 1);
-        const yStart = getRndInteger(0, canvas.height - 1);
-        const ball = new Ball(ctx, xStart, yStart, "healthy");
-        balls.push(ball);
-    }
-
-    // inject infected balls
-    for(let i = 0; i < maxBallsInfected; i++) {
-        const xStart = getRndInteger(0, canvas.width - 1);
-        const yStart = getRndInteger(0, canvas.height - 1);
-        const ball = new Ball(ctx, xStart, yStart, "infected");
-        balls.push(ball);
-    }
+    playground = new Playground(config);
 
     // start infinite loop
     setInterval(dance, time);
-    setInterval(updateStatistics, timeStatistics);
+    setInterval(printStatistics, timeStatistics);
 }
 
 $(document).ready(function() {
