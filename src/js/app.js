@@ -154,4 +154,5 @@ function startDancing() {
 
 $(document).ready(function() {
     console.log("Ready!");
+    test();
 });
