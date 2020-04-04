@@ -1,3 +1,4 @@
+// source: https://www.tuttitalia.it/statistiche/popolazione-eta-sesso-stato-civile-2018/
 const ageAndSexProbability =[
     {id: 0, ageRange: "0-4", pm: 0.514, pf: 0.486, pe: 0.040},
     {id: 1, ageRange: "5-9", pm: 0.514, pf: 0.486, pe: 0.046},
@@ -40,7 +41,7 @@ function getValueFromProbabilityArray(probabilityArray) {
 
 function isHappeningProbability(probability) {
     const rnd = Math.random();
-    return rnd > probability ? true : false;
+    return rnd < probability ? true : false;
 }
 
 function getAge(probabilityData) {
@@ -49,14 +50,67 @@ function getAge(probabilityData) {
     const probabilityArray = probabilityArrayGenerator(pe, 1000);
     const ageIdx = getValueFromProbabilityArray(probabilityArray);
     const ageRange = probabilityData.filter(data => data.id === ageIdx)[0];
+    const yearsRange = 5;
+    const years = yearsRange * ageIdx + Math.floor(Math.random() * yearsRange);
 
-    return {ageIdx: ageIdx, ageRange: ageRange};
+    return {ageIdx: ageIdx, ageRange: ageRange, years: years};
 }
 
 function getSexGivenAgeIdx(probabilityData, ageIdx) {
     const pm = probabilityData[ageIdx].pm;
 
-    return isHappeningProbability(pm) ? "male": "female";
+    return isHappeningProbability(pm) ? "male" : "female";
+}
+
+function getRadiusOfInfection(refDistance, status, sex) {
+    const maleDistanceMultiplier = 1.15;
+    const femaleDistanceMultiplier = 0.95;
+    const sickDistanceMultiplier = 1.5;
+
+    let radius = refDistance;
+    if(status === "positive") {
+        radius *= (sex === "female" ? femaleDistanceMultiplier : maleDistanceMultiplier);
+    } else if (status === "sick"){
+        radius *= sickDistanceMultiplier; 
+    } else {
+        radius = -1;
+    }
+    return radius;
+}
+
+function getProbabilityOfInfectionByDistance(distance, radiusOfInfection) {
+    // y = -x^2/r^2 + 1
+    let probability = 0;
+    if(radiusOfInfection > 0) {
+        probability = (-Math.pow(distance, 2)/Math.pow(radiusOfInfection, 2)) + 1;
+    }
+
+    return Math.max(probability, 0);
+}
+
+function getProbabilityOfSickness() {
+    let probability = 0;
+    if(status === "positive") {
+        probability = 0.005*Math.exp(0.04*age);
+    }
+
+    return probability;
+}
+
+function getPrbabilityOfDeath() {
+    let probability = 0;
+    if(status === "sick") {
+        probability = 0.005*Math.exp(0.04*age) + timeOfSickness*0.00025*age;
+    }
+    return probability;
+}
+
+function getProbabilityOfRecovery() {
+    let probability = 0;
+    if(status === "sick") {
+        prbability = timeOfSickness * 0.01 - age * (0.001);
+    }
+    return probability;
 }
 
 function test() {
