@@ -25,6 +25,7 @@ class Playground {
         this.canvas = config.canvas;
         this.ctx = this.canvas.getContext("2d");
 
+        this.time = 0;
         this.balls = [];
         this.currentHealthy = 0;
         this.currentInfected = 0;
@@ -69,6 +70,14 @@ class Playground {
         });
     }
 
+    getTimeSpentInDays() {
+        const conversionFactor = 25920/(1000/time); // 3 months = 5 minutes
+        const days = (this.time/(24*60*60)) * conversionFactor;
+        const intDays = Math.floor(days);
+        const intHours = Math.floor((days - intDays) * 24);
+        return `${intDays} Days ${intHours} Hours`;
+    }
+
     updateStatistics() {
         this.currentHealthy = this.balls.filter(b => b.status === "healthy").length;
         this.currentInfected = this.balls.filter(b => b.status === "infected").length;
@@ -77,6 +86,7 @@ class Playground {
     }
 
     play() {
+        this.time++;
         this.clearPlayground();
         this.updateBallsInfectedStatus();
         this.updateBallsStatus();
@@ -249,6 +259,7 @@ function getRndInteger(min, max) {
 
 // html
 function printStatistics() {
+    $("#time").html(`${playground.getTimeSpentInDays()}`);
     $("#healthy").html(`${playground.currentHealthy} (${playground.currentHealthyRatio.toFixed(2)}%)`);
     $("#infected").html(`${playground.currentInfected} (${playground.currentInfectedRatio.toFixed(2)}%)`);
 }
