@@ -12,6 +12,20 @@ const sexColors = {
     female: "magenta"
 };
 
+const directions = {
+    n: {x: 0, y: 1, nxt: ["n", "ne", "no", "o", "e"]},
+    e: {x: 1, y: 0, nxt: ["e", "ne", "se", "n", "s"]},
+    s: {x: 0, y: -1, nxt: ["s", "se", "so", "e", "o"]},
+    o: {x: -1, y: 0, nxt: ["o", "so", "no", "s", "n"]},
+    ne: {x: 1, y: 1, nxt: ["ne", "n", "e", "no", "se"]},
+    no: {x: -1, y: 1, nxt: ["no",  "n", "o", "ne", "so"]},
+    se: {x: 1, y: -1, nxt: ["se",  "e", "s", "ne", "so"]},
+    so: {x: -1, y: -1, nxt: ["so", "o", "s", "no", "se"]}
+};
+
+const directionsProbabilities = [70, 10, 10, 5, 5];
+const startingDirections = Object.keys(directions);
+
 var playground;
 
 class Playground {
@@ -100,6 +114,7 @@ class Ball {
         this.ctx = ctx;
         this.x = xStart;
         this.y = yStart;
+        console.log("Coords: " + this.x + "," + this.y);
         this.status = status;
         this.radius = radius;
         this.range = range;
@@ -108,11 +123,12 @@ class Ball {
         this.id = 0;
         this.age = getAge(ageAndSexProbability);
         this.sex = getSexGivenAgeIdx(ageAndSexProbability, this.age.ageIdx);
-        this.dateBorn = new Date();
+        this.dateBorn = Date.now();
         this.dateInfected = null;
         this.dateSickness = null;
         this.dateDeath = null;
         this.dateRecoverd = null;
+        this.currentDir = this.getStartingDirection();
     }
 
     getColor() {
@@ -124,8 +140,14 @@ class Ball {
     }
 
     move() {
+        /*
         this.x += this.getRndMovement(); //getRndInteger(-range, range);
         this.y += this.getRndMovement(); //getRndInteger(-range, range);
+        */
+        const movement = this.getPseudoRandomMovement();
+        this.x += movement.x;
+        this.y += movement.y;
+        this.currentDir = movement;
         this.x = Math.min(Math.max(0 + this.radius, this.x), this.maxWidth - this.radius);
         this.y = Math.min(Math.max(0 + this.radius, this.y), this.maxHeight - this.radius);
     }
@@ -147,6 +169,23 @@ class Ball {
 
     getDistance(ball) {
         return Math.sqrt(Math.pow(this.x - ball.x, 2) + Math.pow(this.y - ball.y, 2));
+    }
+
+    getStartingDirection() {
+        const idx = Math.floor(Math.random() * startingDirections.length);
+        return directions[startingDirections[idx]];
+    }
+
+    getPseudoRandomMovement() {
+        const directionsArray = [];
+        directionsProbabilities.forEach((p, i) => {
+            for(let k = 0; k < p; k++) {
+                directionsArray.push(this.currentDir.nxt[i]);
+            }
+        });
+        const idx = Math.floor(Math.random() * directionsArray.length);
+        const nextMoveKey = directionsArray[idx];
+        return directions[nextMoveKey];
     }
 
     getRndMovement() {
@@ -188,7 +227,6 @@ class Ball {
         if(this.status === "healthy" && infected) {
             this.status = "infected";
             this.dateInfected = Date.now();
-            console.log(distance);
         }
         return infected;
     }
