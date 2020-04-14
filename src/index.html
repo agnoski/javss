@@ -42,9 +42,17 @@
         <p>Time: <span id="time">0</span></p>
         <p>Healthy: <span id="healthy">0 (0%)</span></p>
         <p>Infected: <span id="infected">0 (0%)</span></p>
+        <p>Sick: <span id="sick">0 (0%)</span></p>
+        <p>Dead: <span id="dead">0 (0%)</span></p>
+        <p>Recovered: <span id="recovered">0 (0%)</span></p>
     </div>
 </div>
 
+<div class="plot-outer-container">
+    <div id="graph"><!-- Plotly chart will be drawn inside this DIV --></div>
+</div>
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="js/peopleGenerator.js"></script>
 <script src="js/app.js"></script>

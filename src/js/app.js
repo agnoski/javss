@@ -1,5 +1,9 @@
 const time = 100;
 const timeStatistics = 1000;
+const timesample = 33;
+const maxtime = 600;
+const conversionFactor = 25920/(1000/time); // 3 months = 5 minutes
+
 const colors = {
     healthy: "lime",
     infected: "orange",
@@ -41,13 +45,29 @@ class Playground {
 
         this.time = 0;
         this.balls = [];
+        this.stats = [];
         this.currentHealthy = 0;
-        this.currentInfected = 0;
         this.currentHealthyRatio = 0;
+        this.currentHealthyAvgAge = 0;
+        this.currentInfected = 0;
         this.currentInfectedRatio = 0;
+        this.currentInfectedAvgAge = 0;
+        this.currentSick = 0;
+        this.currentSickRatio = 0;
+        this.currentSickAvgAge = 0;
+        this.currentDead = 0;
+        this.currentDeadRatio = 0;
+        this.currenDeadAvgAge = 0;
+        this.currentRecovered = 0;
+        this.currentRecoveredatio = 0;
+        this.currentRecoveredAvgAge = 0;
+
+        this.intervals = [];
 
         this.injectBalls(this.maxBallsHealthy, "healthy");
         this.injectBalls(this.maxBallsInfected, "infected");
+
+        this.plotStats("Stats", "graph");
     }
 
     injectBalls(amount, status){
@@ -74,7 +94,7 @@ class Playground {
     }
 
     updateBallsStatus() {
-
+        this.balls.forEach(b => b.updateStatus());
     }
 
     moveAndRedraw() {
@@ -85,8 +105,7 @@ class Playground {
     }
 
     getTimeSpentInDays() {
-        const conversionFactor = 25920/(1000/time); // 3 months = 5 minutes
-        const days = (this.time/(24*60*60)) * conversionFactor;
+        const days = getDays(this.time);
         const intDays = Math.floor(days);
         const intHours = Math.floor((days - intDays) * 24);
         return `${intDays} Days ${intHours} Hours`;
@@ -95,8 +114,82 @@ class Playground {
     updateStatistics() {
         this.currentHealthy = this.balls.filter(b => b.status === "healthy").length;
         this.currentInfected = this.balls.filter(b => b.status === "infected").length;
+        this.currentSick = this.balls.filter(b => b.status === "sick").length;
+        this.currentDead = this.balls.filter(b => b.status === "dead").length;
+        this.currentRecovered = this.balls.filter(b => b.status === "recovered").length;
         this.currentHealthyRatio = 100.0 * (this.currentHealthy / this.totalBalls);
         this.currentInfectedRatio = 100.0 * (this.currentInfected / this.totalBalls);
+        this.currentSickRatio = 100.0 * (this.currentSick / this.totalBalls);
+        this.currentDeadRatio = 100.0 * (this.currentDead / this.totalBalls);
+        this.currentRecoveredRatio = 100.0 * (this.currentRecovered / this.totalBalls);
+        this.currentHealthyAvgAge = this.currentHealthy > 0 ? this.balls.filter(b => b.status === "healthy").map(b => b.age.years).reduce((a, b) => a + b) / this.currentHealthy : -1;
+        this.currentInfectedAvgAge = this.currentInfected > 0 ? this.balls.filter(b => b.status === "infected").map(b => b.age.years).reduce((a, b) => a + b) / this.currentInfected : -1;
+        this.currentSickAvgAge = this.currentSick > 0 ? this.balls.filter(b => b.status === "sick").map(b => b.age.years).reduce((a, b) => a + b) / this.currentSick : -1;
+        this.currentDeadAvgAge = this.currentDead > 0 ? this.balls.filter(b => b.status === "dead").map(b => b.age.years).reduce((a, b) => a + b) / this.currentDead : -1;
+        this.currentRecoveredAvgAge = this.currentRecovered > 0 ? this.balls.filter(b => b.status === "recovered").map(b => b.age.years).reduce((a, b) => a + b) / this.currentRecovered : -1;
+    }
+
+    saveSample() {
+        if(this.time % timesample === 0) {
+            const sample = {
+                date: Date.now(),
+                currentHealthy: this.currentHealthy,
+                currentHealthyRatio: this.currentHealthyRatio,
+                currentInfected: this.currentInfected,
+                currentInfectedRatio: this.currentInfectedRatio,
+                currentSick: this.currentSick,
+                currentSickRatio: this.currentSickRatio,
+                currentDead: this.currentDead,
+                currentDeadRatio: this.currentDeadRatio,
+                currentRecovered: this.currentRecovered,
+                currentRecoveredRatio: this.currentRecoveredRatio,
+            };
+
+            this.stats.push(sample);
+        }
+    }
+
+    addInterval(interval) {
+        this.intervals.push(interval);
+    }
+
+    clearIntervals() {
+        this.intervals.forEach( i => {
+            clearInterval(i);
+        });
+    }
+
+    getPlotData(name, label) {
+        return {
+            x: this.stats.map(sample => sample["date"]),
+            y: this.stats.map(sample => sample[name]),
+            mode: "lines",
+            type: "scatter",
+            name: label
+        };
+    }
+
+    plotStats(plotTitle, divName) {
+        const layout = {
+            title: plotTitle,
+          };
+      
+          const config = {responsive: true}
+
+          const dataH = this.getPlotData("currentlyHealthy", "Healthy");
+          const dataI = this.getPlotData("currentInfected", "Infected");
+          const dataS = this.getPlotData("currentSick", "Sick");
+          const dataD = this.getPlotData("currentDead", "Dead");
+          const dataR = this.getPlotData("currentRecovered", "Recovered");
+
+          Plotly.newPlot(divName, [dataH, dataI, dataS, dataD, dataR], layout, config);
+    }
+
+    extendTraces() {
+        Plotly.extendTraces("graph", {
+            x: [[Date.now()], [Date.now()], [Date.now()], [Date.now()], [Date.now()]],
+            y: [[this.currentHealthy], [this.currentInfected], [this.currentSick], [this.currentDead], [this.currentRecovered]]
+          }, [0, 1, 2, 3, 4])
     }
 
     play() {
@@ -106,6 +199,11 @@ class Playground {
         this.updateBallsStatus();
         this.moveAndRedraw();
         this.updateStatistics();
+        this.saveSample();
+
+        if(this.time  > maxtime) {
+            //this.clearIntervals();
+        }
     }
 }
 
@@ -153,7 +251,17 @@ class Ball {
     }
 
     updateStatus() {
-
+        switch(this.status) {
+            case "infected":
+                this.isSick();
+                break;
+            case "sick":
+                this.isDead();
+                this.isRecovery();
+                break; 
+            default:
+                // do nothing;
+        }
     }
 
     draw() {
@@ -233,8 +341,8 @@ class Ball {
 
     getProbabilityOfSickness() {
         let probability = 0;
-        if(this.status === "positive") {
-            probability = 0.005*Math.exp(0.04*age);
+        if(this.status === "infected") {
+            probability = 0.005*Math.exp(0.04*this.age.years);
         }
     
         return probability;
@@ -245,16 +353,16 @@ class Ball {
         const sick = isHappeningProbability(probabilityOfSickness);
 
         if(sick) {
-            this.staus = "sick";
+            this.status = "sick";
             this.dateSickness = Date.now();
         }
         return sick;
     }
     
-    getPrbabilityOfDeath() {
+    getProbabilityOfDeath() {
         let probability = 0;
         if(this.status === "sick") {
-            probability = 0.005*Math.exp(0.04*this.age) + this.timeOfSickness*0.00025*this.age;
+            probability = 0.005*Math.exp(0.04*this.age.years) + this.getElapsedTime(this.dateSickness)*0.00025*this.age.years;
         }
         return probability;
     }
@@ -264,7 +372,7 @@ class Ball {
         const dead = isHappeningProbability(probabilityOfDeath);
 
         if(dead) {
-            this.staus = "dead";
+            this.status = "dead";
             this.dateDeath = Date.now();
         }
         return dead;
@@ -272,8 +380,8 @@ class Ball {
     
     getProbabilityOfRecovery() {
         let probability = 0;
-        if(status === "sick") {
-            prbability = this.timeOfSickness * 0.01 - this.age * (0.001);
+        if(this.status === "sick") {
+            probability = this.getElapsedTime(this.dateSickness) * 0.01 - this.age.years * (0.001);
         }
         return probability;
     }
@@ -283,10 +391,14 @@ class Ball {
         const recovered = isHappeningProbability(probabilityOfRecovery);
 
         if(recovered) {
-            this.staus = "recovered";
+            this.status = "recovered";
             this.dateRecoverd = Date.now();
         }
         return recovered;
+    }
+
+    getElapsedTime(time) {
+        return getDaysFromMs(Date.now() - time);
     }
 }
 
@@ -295,16 +407,35 @@ function getRndInteger(min, max) {
     return Math.floor(Math.random() * (max - min + 1) ) + min;
 }
 
+function getDays(timeUnits) {
+    return (timeUnits/(24*60*60)) * conversionFactor;
+}
+
+function getDaysFromMs(timeMs) {
+    return getDays(timeMs*(1000/time));
+}
+
 // html
 function printStatistics() {
     $("#time").html(`${playground.getTimeSpentInDays()}`);
-    $("#healthy").html(`${playground.currentHealthy} (${playground.currentHealthyRatio.toFixed(2)}%)`);
-    $("#infected").html(`${playground.currentInfected} (${playground.currentInfectedRatio.toFixed(2)}%)`);
+    $("#healthy").html(`${playground.currentHealthy} (${playground.currentHealthyRatio.toFixed(2)}%) - Avg Age: ${playground.currentHealthyAvgAge.toFixed(1)}`);
+    $("#infected").html(`${playground.currentInfected} (${playground.currentInfectedRatio.toFixed(2)}%) - Avg Age: ${playground.currentInfectedAvgAge.toFixed(1)}`);
+    $("#sick").html(`${playground.currentSick} (${playground.currentSickRatio.toFixed(2)}%) - Avg Age: ${playground.currentSickAvgAge.toFixed(1)}`);
+    $("#dead").html(`${playground.currentDead} (${playground.currentDeadRatio.toFixed(2)}%) - Avg Age: ${playground.currentDeadAvgAge.toFixed(1)}`);
+    $("#recovered").html(`${playground.currentRecovered} (${playground.currentRecoveredRatio.toFixed(2)}%) - Avg Age: ${playground.currentRecoveredAvgAge.toFixed(1)}`);
 }
 
 function dance() {
     playground.play();
 }
+
+var cnt = 0;
+var interval = setInterval(function() {
+
+    playground.extendTraces();
+  
+    if(++cnt === 100) clearInterval(interval);
+  }, 300);
 
 function startDancing() {
     // init contetext
@@ -320,8 +451,10 @@ function startDancing() {
     playground = new Playground(config);
 
     // start infinite loop
-    setInterval(dance, time);
-    setInterval(printStatistics, timeStatistics);
+    let interval = setInterval(dance, time);
+    playground.addInterval(interval);
+    interval = setInterval(printStatistics, timeStatistics);
+    playground.addInterval(interval);
 }
 
 $(document).ready(function() {
