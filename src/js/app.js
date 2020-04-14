@@ -17,14 +17,14 @@ const sexColors = {
 };
 
 const directions = {
-    n: {x: 0, y: 1, nxt: ["n", "ne", "no", "o", "e"]},
+    n: {x: 0, y: 1, nxt: ["n", "ne", "nw", "w", "e"]},
     e: {x: 1, y: 0, nxt: ["e", "ne", "se", "n", "s"]},
-    s: {x: 0, y: -1, nxt: ["s", "se", "so", "e", "o"]},
-    o: {x: -1, y: 0, nxt: ["o", "so", "no", "s", "n"]},
-    ne: {x: 1, y: 1, nxt: ["ne", "n", "e", "no", "se"]},
-    no: {x: -1, y: 1, nxt: ["no",  "n", "o", "ne", "so"]},
-    se: {x: 1, y: -1, nxt: ["se",  "e", "s", "ne", "so"]},
-    so: {x: -1, y: -1, nxt: ["so", "o", "s", "no", "se"]}
+    s: {x: 0, y: -1, nxt: ["s", "se", "sw", "e", "w"]},
+    w: {x: -1, y: 0, nxt: ["w", "sw", "nw", "s", "n"]},
+    ne: {x: 1, y: 1, nxt: ["ne", "n", "e", "nw", "se"]},
+    nw: {x: -1, y: 1, nxt: ["nw",  "n", "w", "ne", "sw"]},
+    se: {x: 1, y: -1, nxt: ["se",  "e", "s", "ne", "sw"]},
+    sw: {x: -1, y: -1, nxt: ["sw", "w", "s", "nw", "se"]}
 };
 
 const directionsProbabilities = [70, 10, 10, 5, 5];
