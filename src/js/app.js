@@ -362,7 +362,8 @@ class Ball {
     getProbabilityOfDeath() {
         let probability = 0;
         if(this.status === "sick") {
-            probability = 0.005*Math.exp(0.04*this.age.years) + this.getElapsedTime(this.dateSickness)*0.00025*this.age.years;
+            const daysSinceSick = this.getElapsedTime(this.dateSickness);
+            probability = 0.005*Math.exp(0.04*this.age.years) + daysSinceSick*0.00025*this.age.years;
         }
         return probability;
     }
@@ -417,6 +418,8 @@ function getDaysFromMs(timeMs) {
 
 // html
 function printStatistics() {
+    playground.extendTraces();
+
     $("#time").html(`${playground.getTimeSpentInDays()}`);
     $("#healthy").html(`${playground.currentHealthy} (${playground.currentHealthyRatio.toFixed(2)}%) - Avg Age: ${playground.currentHealthyAvgAge.toFixed(1)}`);
     $("#infected").html(`${playground.currentInfected} (${playground.currentInfectedRatio.toFixed(2)}%) - Avg Age: ${playground.currentInfectedAvgAge.toFixed(1)}`);
@@ -429,13 +432,6 @@ function dance() {
     playground.play();
 }
 
-var cnt = 0;
-var interval = setInterval(function() {
-
-    playground.extendTraces();
-  
-    if(++cnt === 100) clearInterval(interval);
-  }, 300);
 
 function startDancing() {
     // init contetext
