@@ -4,6 +4,29 @@ const timesample = 33;
 const maxtime = 600;
 const conversionFactor = 25920/(1000/time); // 3 months = 5 minutes
 
+const statuses = {
+    healthy : {
+        name: "Healthy",
+        color: "lime"
+    },
+    infected: {
+        name: "Infected",
+        color: "orange"
+    },
+    sick: {
+        name: "Sick",
+        color: "red"
+    },
+    dead: {
+        name: "Dead",
+        color: "gray"
+    },
+    recovered: {
+        name: "Recovered",
+        color: "cyan"
+    }
+};
+
 const colors = {
     healthy: "lime",
     infected: "orange",
@@ -46,22 +69,7 @@ class Playground {
         this.time = 0;
         this.balls = [];
         this.stats = [];
-        this.currentHealthy = 0;
-        this.currentHealthyRatio = 0;
-        this.currentHealthyAvgAge = 0;
-        this.currentInfected = 0;
-        this.currentInfectedRatio = 0;
-        this.currentInfectedAvgAge = 0;
-        this.currentSick = 0;
-        this.currentSickRatio = 0;
-        this.currentSickAvgAge = 0;
-        this.currentDead = 0;
-        this.currentDeadRatio = 0;
-        this.currenDeadAvgAge = 0;
-        this.currentRecovered = 0;
-        this.currentRecoveredatio = 0;
-        this.currentRecoveredAvgAge = 0;
-
+        this.currentStats = {};
         this.intervals = [];
 
         this.injectBalls(this.maxBallsHealthy, "healthy");
@@ -112,37 +120,24 @@ class Playground {
     }
 
     updateStatistics() {
-        this.currentHealthy = this.balls.filter(b => b.status === "healthy").length;
-        this.currentInfected = this.balls.filter(b => b.status === "infected").length;
-        this.currentSick = this.balls.filter(b => b.status === "sick").length;
-        this.currentDead = this.balls.filter(b => b.status === "dead").length;
-        this.currentRecovered = this.balls.filter(b => b.status === "recovered").length;
-        this.currentHealthyRatio = 100.0 * (this.currentHealthy / this.totalBalls);
-        this.currentInfectedRatio = 100.0 * (this.currentInfected / this.totalBalls);
-        this.currentSickRatio = 100.0 * (this.currentSick / this.totalBalls);
-        this.currentDeadRatio = 100.0 * (this.currentDead / this.totalBalls);
-        this.currentRecoveredRatio = 100.0 * (this.currentRecovered / this.totalBalls);
-        this.currentHealthyAvgAge = this.currentHealthy > 0 ? this.balls.filter(b => b.status === "healthy").map(b => b.age.years).reduce((a, b) => a + b) / this.currentHealthy : -1;
-        this.currentInfectedAvgAge = this.currentInfected > 0 ? this.balls.filter(b => b.status === "infected").map(b => b.age.years).reduce((a, b) => a + b) / this.currentInfected : -1;
-        this.currentSickAvgAge = this.currentSick > 0 ? this.balls.filter(b => b.status === "sick").map(b => b.age.years).reduce((a, b) => a + b) / this.currentSick : -1;
-        this.currentDeadAvgAge = this.currentDead > 0 ? this.balls.filter(b => b.status === "dead").map(b => b.age.years).reduce((a, b) => a + b) / this.currentDead : -1;
-        this.currentRecoveredAvgAge = this.currentRecovered > 0 ? this.balls.filter(b => b.status === "recovered").map(b => b.age.years).reduce((a, b) => a + b) / this.currentRecovered : -1;
+        for(status in statuses) {
+            this.currentStats[status] = this.getCurrentStatsFromStatus(status);
+        }
+    }
+
+    getCurrentStatsFromStatus(status) {
+        const current = this.balls.filter(b => b.status === status).length;
+        const currentRatio = 100.0 * (current / this.totalBalls);
+        const currentAvgAge = current > 0 ? this.balls.filter(b => b.status === status).map(b => b.age.years).reduce((a, b) => a + b) / current : -1;
+   
+        return {current, currentRatio, currentAvgAge};
     }
 
     saveSample() {
         if(this.time % timesample === 0) {
             const sample = {
                 date: Date.now(),
-                currentHealthy: this.currentHealthy,
-                currentHealthyRatio: this.currentHealthyRatio,
-                currentInfected: this.currentInfected,
-                currentInfectedRatio: this.currentInfectedRatio,
-                currentSick: this.currentSick,
-                currentSickRatio: this.currentSickRatio,
-                currentDead: this.currentDead,
-                currentDeadRatio: this.currentDeadRatio,
-                currentRecovered: this.currentRecovered,
-                currentRecoveredRatio: this.currentRecoveredRatio,
+                data: this.currentStats
             };
 
             this.stats.push(sample);
@@ -159,37 +154,39 @@ class Playground {
         });
     }
 
-    getPlotData(name, label) {
+    getPlotData(status, statName) {
         return {
             x: this.stats.map(sample => sample["date"]),
-            y: this.stats.map(sample => sample[name]),
+            y: this.stats.map(sample => sample.data[status][statName]),
             mode: "lines",
             type: "scatter",
-            name: label
+            name: statuses[status].name
         };
     }
 
     plotStats(plotTitle, divName) {
         const layout = {
             title: plotTitle,
-          };
+        };
       
-          const config = {responsive: true}
+        const config = {responsive: true}
 
-          const dataH = this.getPlotData("currentlyHealthy", "Healthy");
-          const dataI = this.getPlotData("currentInfected", "Infected");
-          const dataS = this.getPlotData("currentSick", "Sick");
-          const dataD = this.getPlotData("currentDead", "Dead");
-          const dataR = this.getPlotData("currentRecovered", "Recovered");
-
-          Plotly.newPlot(divName, [dataH, dataI, dataS, dataD, dataR], layout, config);
+        const data = [];
+        for(status in statuses) {
+            data.push(this.getPlotData(status, "current"));
+        }
+        
+        Plotly.newPlot(divName, data, layout, config);
     }
 
     extendTraces() {
+        const x = Object.keys(statuses).map(s => [Date.now()]);
+        const y = Object.keys(statuses).map(s => [this.currentStats[s].current]);
+        const indexes = Object.keys(statuses).map((s, i) => i);
         Plotly.extendTraces("graph", {
-            x: [[Date.now()], [Date.now()], [Date.now()], [Date.now()], [Date.now()]],
-            y: [[this.currentHealthy], [this.currentInfected], [this.currentSick], [this.currentDead], [this.currentRecovered]]
-          }, [0, 1, 2, 3, 4])
+            x,
+            y
+          }, indexes);
     }
 
     play() {
@@ -427,12 +424,11 @@ function printStatistics() {
     playground.extendTraces();
 
     $("#time").html(`${playground.getTimeSpentInDays()}`);
-    $("#healthy").html(`${playground.currentHealthy} (${playground.currentHealthyRatio.toFixed(2)}%) - Avg Age: ${playground.currentHealthyAvgAge.toFixed(1)}`);
-    $("#infected").html(`${playground.currentInfected} (${playground.currentInfectedRatio.toFixed(2)}%) - Avg Age: ${playground.currentInfectedAvgAge.toFixed(1)}`);
-    $("#sick").html(`${playground.currentSick} (${playground.currentSickRatio.toFixed(2)}%) - Avg Age: ${playground.currentSickAvgAge.toFixed(1)}`);
-    $("#dead").html(`${playground.currentDead} (${playground.currentDeadRatio.toFixed(2)}%) - Avg Age: ${playground.currentDeadAvgAge.toFixed(1)}`);
-    $("#recovered").html(`${playground.currentRecovered} (${playground.currentRecoveredRatio.toFixed(2)}%) - Avg Age: ${playground.currentRecoveredAvgAge.toFixed(1)}`);
-}
+    for(status in statuses) {
+        const tmpCurrentStats = playground.currentStats[status];
+        $(`#${status}`).html(`${tmpCurrentStats["current"]} (${tmpCurrentStats["currentRatio"].toFixed(2)}%) - Avg Age: ${tmpCurrentStats["currentAvgAge"].toFixed(1)}`);
+    }
+ }
 
 function printPlaygroundLegend() {
     for(c in colors) {
