@@ -153,7 +153,10 @@ class Playground {
             y: this.stats.map(sample => sample.data[status][statName]),
             mode: "lines",
             type: "scatter",
-            name: statuses[status].name
+            name: statuses[status].name,
+            line: {
+                color: statuses[status].color
+            }
         };
     }
 
