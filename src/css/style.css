@@ -6,10 +6,6 @@ body {
     margin: 0% 8%;
 }
 
-.menu-container {
-
-}
-
 .card {
     padding: 12px;
     box-shadow: 0 0 8px 2px #E0E0E0;
@@ -28,12 +24,7 @@ body {
 	grid-gap: 16px;
 }
 
-.playground-container {
-    margin: 2% 8%;
-    padding: 16px;
-}
-
-.playground-legend {
+.wide-panel, .playground-legend, .playground-container {
     margin: 2% 8%;
     padding: 16px;
 }
