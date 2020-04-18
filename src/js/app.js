@@ -434,6 +434,13 @@ function printStatistics() {
     $("#recovered").html(`${playground.currentRecovered} (${playground.currentRecoveredRatio.toFixed(2)}%) - Avg Age: ${playground.currentRecoveredAvgAge.toFixed(1)}`);
 }
 
+function printPlaygroundLegend() {
+    for(c in colors) {
+        const legendElement = `<span>${c}: <span class="legend-element" style="--color: ${colors[c]};">&nbsp;&nbsp;&nbsp;</span> </span> | `;
+        $("#playground-legend").append(legendElement);
+    };
+}
+
 function dance() {
     playground.play();
 }
@@ -464,5 +471,7 @@ function startDancing() {
 
 $(document).ready(function() {
     console.log("Ready!");
+    printPlaygroundLegend();
+
     test();
 });

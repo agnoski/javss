@@ -32,3 +32,13 @@ body {
     margin: 2% 8%;
     padding: 16px;
 }
+
+.playground-legend {
+    margin: 2% 8%;
+    padding: 16px;
+}
+
+.playground-legend .legend-element {
+    background-color: var(--color);
+    border-radius: 50%;
+}
