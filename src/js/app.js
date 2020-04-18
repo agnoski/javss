@@ -274,8 +274,8 @@ class Ball {
         this.ctx.beginPath();
         this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2, false);
         this.ctx.fillStyle = this.getColor();
-        this.ctx.strokeStyle = this.getSexColor();
-        this.ctx.lineWidth = 1;
+        //this.ctx.strokeStyle = this.getSexColor();
+        //this.ctx.lineWidth = 1;
         this.ctx.fill();
         this.ctx.stroke();
         this.ctx.closePath();
