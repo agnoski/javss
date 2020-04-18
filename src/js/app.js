@@ -205,6 +205,10 @@ class Playground {
             //this.clearIntervals();
         }
     }
+
+    stop() {
+        this.clearIntervals();
+    }
 }
 
 class Ball {
@@ -432,6 +436,9 @@ function dance() {
     playground.play();
 }
 
+function stopDancing() {
+    playground.stop();
+}
 
 function startDancing() {
     // init contetext
