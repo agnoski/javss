@@ -27,13 +27,6 @@ const statuses = {
     }
 };
 
-const colors = {
-    healthy: "lime",
-    infected: "orange",
-    sick: "red",
-    dead: "gray",
-    recovered: "cyan"
-};
 const sexColors = {
     male: "blue",
     female: "magenta"
@@ -231,7 +224,7 @@ class Ball {
     }
 
     getColor() {
-        return colors[this.status];
+        return statuses[this.status].color;
     }
 
     getSexColor() {
@@ -431,10 +424,10 @@ function printStatistics() {
  }
 
 function printPlaygroundLegend() {
-    for(c in colors) {
-        const legendElement = `<span>${c}: <span class="legend-element" style="--color: ${colors[c]};">&nbsp;&nbsp;&nbsp;</span> </span> | `;
+    Object.values(statuses).forEach(status => {
+        const legendElement = `<span>${status.name}: <span class="legend-element" style="--color: ${status.color};">&nbsp;&nbsp;&nbsp;</span> </span> | `;
         $("#playground-legend").append(legendElement);
-    };
+    });
 }
 
 function dance() {
