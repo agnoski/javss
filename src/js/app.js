@@ -246,12 +246,14 @@ class Ball {
         this.x += this.getRndMovement(); //getRndInteger(-range, range);
         this.y += this.getRndMovement(); //getRndInteger(-range, range);
         */
-        const movement = this.getPseudoRandomMovement();
-        this.x += movement.x;
-        this.y += movement.y;
-        this.currentDir = movement;
-        this.x = Math.min(Math.max(0 + this.radius, this.x), this.maxWidth - this.radius);
-        this.y = Math.min(Math.max(0 + this.radius, this.y), this.maxHeight - this.radius);
+       if(this.status !== "dead") {
+            const movement = this.getPseudoRandomMovement();
+            this.x += movement.x;
+            this.y += movement.y;
+            this.currentDir = movement;
+            this.x = Math.min(Math.max(0 + this.radius, this.x), this.maxWidth - this.radius);
+            this.y = Math.min(Math.max(0 + this.radius, this.y), this.maxHeight - this.radius);
+       }
     }
 
     updateStatus() {
