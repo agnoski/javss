@@ -119,11 +119,22 @@ class Playground {
     }
 
     getCurrentStatsFromStatus(status) {
-        const current = this.balls.filter(b => b.status === status).length;
+        const currentStatusBalls = this.balls.filter(b => b.status === status);
+        const current = currentStatusBalls.length;
+        const currentMale = currentStatusBalls.filter(b => b.sex === "male").length;
+        const currentFemale = currentStatusBalls.filter(b => b.sex === "female").length;
         const currentRatio = 100.0 * (current / this.totalBalls);
-        const currentAvgAge = current > 0 ? this.balls.filter(b => b.status === status).map(b => b.age.years).reduce((a, b) => a + b) / current : -1;
-   
-        return {current, currentRatio, currentAvgAge};
+        const currentAvgAge = current > 0 ? currentStatusBalls.map(b => b.age.years).reduce((a, b) => a + b) / current : -1;
+        const currentMaleRatio = current > 0 ? 100.0 * (currentMale / current) : 0;
+        const currentFemaleRatio = current > 0 ? 100.0 * (currentFemale / current) : 0;
+        return { 
+            current,
+            currentMale,
+            currentFemale,
+            currentMaleRatio,
+            currentFemaleRatio,
+            currentRatio,
+            currentAvgAge};
     }
 
     saveSample() {
@@ -424,7 +435,24 @@ function printStatistics() {
         const tmpCurrentStats = playground.currentStats[status];
         $(`#${status}`).html(`${tmpCurrentStats["current"]} (${tmpCurrentStats["currentRatio"].toFixed(2)}%) - Avg Age: ${tmpCurrentStats["currentAvgAge"].toFixed(1)}`);
     }
+    updateTableStats();
  }
+
+function updateTableStats() {
+    let rows = "";
+    Object.keys(statuses).forEach(status => {
+        const row = `<tr>
+            <td>${statuses[status].name}:</td>
+            <td>${playground.currentStats[status].current}</td>
+            <td>${playground.currentStats[status].currentRatio.toFixed(2)}</td>
+            <td>${playground.currentStats[status].currentAvgAge.toFixed(2)}</td>
+            <td>${playground.currentStats[status].currentMaleRatio.toFixed(2)}</td>
+            <td>${playground.currentStats[status].currentFemaleRatio.toFixed(2)}</td>
+        </tr>`;
+        rows += row;
+    });
+    $("#table-stats tbody").html(rows);
+}
 
 function printPlaygroundLegend() {
     Object.values(statuses).forEach(status => {
